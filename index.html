@@ -79,6 +79,29 @@ body{
 .field input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none; margin:0;}
 .field input[type=number]{-moz-appearance:textfield;}
 .row-2{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
+.field select{
+  width:100%; background:#0d1017; border:1px solid rgba(255,255,255,0.08); color:var(--text);
+  font-family:'Cairo',sans-serif; font-size:14px; font-weight:700; padding:12px 14px;
+  border-radius:var(--radius-sm); outline:none; appearance:none; cursor:pointer;
+}
+.field select:focus{border-color:var(--gold);}
+.import-toggle{
+  display:flex; align-items:center; gap:10px; cursor:pointer; user-select:none;
+  background:#0d1017; border:1px solid rgba(255,255,255,0.07); border-radius:var(--radius-sm);
+  padding:11px 14px; margin-bottom:14px;
+}
+.import-toggle input{width:17px; height:17px; accent-color:var(--gold); cursor:pointer; flex-shrink:0;}
+.import-toggle-text{font-size:12.5px; font-weight:700; color:var(--text-dim);}
+.import-toggle input:checked ~ .import-toggle-text{color:var(--gold);}
+.import-block{
+  background:rgba(227,179,65,0.05); border:1px solid rgba(227,179,65,0.18);
+  border-radius:var(--radius-md); padding:14px; margin-bottom:14px;
+}
+.import-result{
+  font-size:13px; color:var(--text-dim); margin-top:4px; padding-top:10px;
+  border-top:1px solid rgba(255,255,255,0.06);
+}
+.import-result b{color:var(--gold); font-weight:800; font-variant-numeric:tabular-nums;}
 
 .advanced{margin-top:4px;}
 .advanced summary{
@@ -160,13 +183,25 @@ body{
   margin-top:12px; font-size:12.5px; color:var(--red); background:var(--red-soft);
   border:1px solid rgba(242,99,110,0.3); padding:9px 12px; border-radius:var(--radius-sm);
 }
-.locked-feature{
-  width:100%; margin-top:14px; padding:12px 14px; background:rgba(255,255,255,0.02);
-  border:1.5px dashed rgba(255,255,255,0.12); border-radius:var(--radius-md); color:var(--text-faint);
-  font-size:12.5px; font-weight:600; display:flex; align-items:center; justify-content:center;
-  gap:8px; cursor:not-allowed;
+.ai-btn{
+  width:100%; margin-top:14px; padding:13px 14px;
+  background:linear-gradient(135deg, rgba(227,179,65,0.16), rgba(47,212,167,0.10));
+  border:1.5px solid rgba(227,179,65,0.35); border-radius:var(--radius-md); color:var(--gold);
+  font-size:13px; font-weight:800; display:flex; align-items:center; justify-content:center;
+  gap:8px; transition:all .15s;
 }
-.action-row{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:14px;}
+.ai-btn:hover{background:linear-gradient(135deg, rgba(227,179,65,0.24), rgba(47,212,167,0.16));}
+.ai-btn:disabled{opacity:0.65; cursor:wait;}
+.ai-box{
+  margin-top:12px; background:#0d1017; border:1px solid rgba(227,179,65,0.2); border-radius:var(--radius-md);
+  padding:14px; font-size:13px; line-height:1.7; color:var(--text-dim);
+}
+.ai-box p{margin-bottom:8px;}
+.ai-box p:last-child{margin-bottom:0;}
+.ai-loading{color:var(--text-faint); text-align:center;}
+.ai-error{color:var(--red);}
+.stat-formula{display:block; font-size:10px; color:var(--text-faint); line-height:1.4; margin-top:3px;}
+.action-row{display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-top:14px;}
 .action-btn{
   padding:11px 8px; background:#0d1017; border:1px solid rgba(255,255,255,0.08); border-radius:var(--radius-sm);
   color:var(--text-dim); font-size:12px; font-weight:700; text-align:center; transition:all .15s;
@@ -189,7 +224,13 @@ body{
 .saved-note{font-size:11.5px; color:var(--text-faint); margin-top:14px; line-height:1.6;}
 
 .chart-hint{font-size:12.5px; color:var(--text-dim); margin-bottom:14px;}
-.chart-wrap{height:220px; margin-bottom:10px; position:relative;}
+.chart-wrap{height:220px; min-height:180px; width:100%; margin-bottom:10px; position:relative;}
+.chart-wrap canvas{width:100% !important; height:100% !important; display:block;}
+@media (max-width:480px){
+  .chart-wrap{height:200px;}
+  .stats-grid{gap:8px;}
+  .action-row{grid-template-columns:1fr 1fr;}
+}
 .legend{display:flex; gap:16px; flex-wrap:wrap; font-size:12px; color:var(--text-dim);}
 .legend span{display:inline-flex; align-items:center; gap:6px;}
 .legend .dot{width:8px; height:8px; border-radius:50%; display:inline-block;}
@@ -229,7 +270,7 @@ input[type=range]::-moz-range-thumb{
 .sheet-footer{text-align:center; font-size:12px; color:var(--text-faint); margin-top:20px;}
 
 @media print{
-  .top-bar, .type-tabs, .action-row, .locked-feature, #resetWhatIf, input[type=range]{display:none !important;}
+  .top-bar, .type-tabs, .action-row, .ai-btn, .ai-box, #resetWhatIf, input[type=range]{display:none !important;}
   body{background:#fff !important; color:#000 !important; padding:0;}
   .sheet{box-shadow:none; border:1px solid #ccc;}
 }
@@ -259,8 +300,24 @@ input[type=range]::-moz-range-thumb{
     <p class="auth-sub" id="authSub">سجّل دخولك للوصول لحسابك المدفوع.</p>
     <div class="field"><label for="authEmail">البريد الإلكتروني</label><input type="email" id="authEmail" inputmode="email" placeholder="example@email.com" autocomplete="email"></div>
     <div class="field"><label for="authPassword">كلمة المرور <em>(6 أحرف على الأقل)</em></label><input type="password" id="authPassword" autocomplete="current-password"></div>
+    <button class="text-btn" id="forgotPasswordLink" type="button" style="margin-top:6px;">نسيت كلمة المرور؟</button>
     <p class="auth-msg" id="authMsg" hidden></p>
     <button class="primary-btn" id="authSubmit" type="button">دخول</button>
+  </div>
+
+  <!-- شاشة تعيين كلمة مرور جديدة (بعد رابط الاستعادة) -->
+  <div class="sheet" id="resetScreen" hidden>
+    <div class="brand-bar with-border">
+      <div class="brand-mark">T</div>
+      <div class="brand-text">
+        <h1>Tajir <span>IQ</span></h1>
+        <p>تعيين كلمة مرور جديدة</p>
+      </div>
+    </div>
+    <p class="auth-sub">أدخل كلمة المرور الجديدة لحسابك.</p>
+    <div class="field"><label for="newPassword">كلمة المرور الجديدة <em>(6 أحرف على الأقل)</em></label><input type="password" id="newPassword" autocomplete="new-password"></div>
+    <p class="auth-msg" id="resetMsg" hidden></p>
+    <button class="primary-btn" id="resetSubmit" type="button">تحديث كلمة المرور</button>
   </div>
 
   <!-- شاشة تفعيل الكود -->
@@ -304,24 +361,47 @@ input[type=range]::-moz-range-thumb{
         <h2 id="inputsTitle">بيانات متجرك الإلكتروني</h2>
       </div>
       <div class="field"><label for="productName">اسم المشروع / المنتج <em>(اختياري)</em></label><input type="text" id="productName" placeholder="مثال: متجر الأزياء، مطعم البيت..."></div>
-      <div class="field"><label for="price">متوسط سعر البيع <em>(د.ل)</em></label><input type="number" id="price" inputmode="decimal" min="0" step="0.5" value="20"></div>
-      <div class="field"><label for="cost">تكلفة المنتج / الخدمة <em>(د.ل)</em></label><input type="number" id="cost" inputmode="decimal" min="0" step="0.5" value="8"></div>
-      <div class="field" id="shipField"><label for="ship">تكلفة الشحن لكل وحدة <em>(د.ل)</em></label><input type="number" id="ship" inputmode="decimal" min="0" step="0.5" value="2"></div>
-      <div class="field hidden" id="rentField"><label for="rent">الإيجار الشهري <em>(د.ل)</em></label><input type="number" id="rent" inputmode="decimal" min="0" step="10" value="500"></div>
-      <div class="field hidden" id="staffField"><label for="staff">رواتب الموظفين <em>(د.ل)</em></label><input type="number" id="staff" inputmode="decimal" min="0" step="10" value="1000"></div>
-      <div class="field"><label for="qty">المبيعات المتوقعة شهرياً <em>(وحدة)</em></label><input type="number" id="qty" inputmode="numeric" min="0" step="1" value="500"></div>
-      <div class="row-2">
-        <div class="field"><label for="adspend">ميزانية الإعلان الشهرية <em>(د.ل)</em></label><input type="number" id="adspend" inputmode="decimal" min="0" step="50" value="500"></div>
-        <div class="field"><label for="fixed">مصاريف ثابتة أخرى <em>(د.ل)</em></label><input type="number" id="fixed" inputmode="decimal" min="0" step="10" value="500"></div>
-      </div>
-      <div class="field"><label for="target">هدف الربح الشهري <em>(د.ل)</em></label><input type="number" id="target" inputmode="decimal" min="0" step="10" value="3000"></div>
-      <details class="advanced">
-        <summary>خيارات متقدمة (اختياري)</summary>
+      <div class="field"><label for="price">متوسط سعر البيع <em>(د.ل — لكل وحدة)</em></label><input type="number" id="price" inputmode="decimal" min="0" step="0.5" value="20"></div>
+      <label class="import-toggle" for="importMode">
+        <input type="checkbox" id="importMode">
+        <span class="import-toggle-text">🌍 بضاعة مستوردة — احسب التكلفة من العملة الأجنبية</span>
+      </label>
+      <div class="import-block" id="importBlock" hidden>
         <div class="row-2">
-          <div class="field"><label for="discount">نسبة الخصم <em>(%)</em></label><input type="number" id="discount" inputmode="decimal" min="0" max="100" step="1" value="0"></div>
-          <div class="field"><label for="returns">نسبة المرتجعات المتوقعة <em>(%)</em></label><input type="number" id="returns" inputmode="decimal" min="0" max="100" step="1" value="0"></div>
+          <div class="field"><label for="importCurrency">العملة</label>
+            <select id="importCurrency">
+              <option value="USD">دولار أمريكي ($)</option>
+              <option value="EUR">يورو (€)</option>
+              <option value="TRY">ليرة تركية (₺)</option>
+              <option value="CNY">يوان صيني (¥)</option>
+              <option value="AED">درهم إماراتي (د.إ)</option>
+              <option value="TND">دينار تونسي (د.ت)</option>
+              <option value="EGP">جنيه مصري (ج.م)</option>
+            </select>
+          </div>
+          <div class="field"><label for="importPrice">سعر الوحدة <em>(بالعملة الأجنبية)</em></label><input type="number" id="importPrice" inputmode="decimal" min="0" step="0.1" value="5"></div>
         </div>
-      </details>
+        <div class="row-2">
+          <div class="field"><label for="exchangeRate">سعر الصرف <em>(د.ل لكل وحدة عملة)</em></label><input type="number" id="exchangeRate" inputmode="decimal" min="0" step="0.01" value="5.5"></div>
+          <div class="field"><label for="customsFee">جمارك وتخليص <em>(د.ل — لكل وحدة)</em></label><input type="number" id="customsFee" inputmode="decimal" min="0" step="0.5" value="0"></div>
+        </div>
+        <p class="import-result" id="importResult">تكلفة الوحدة النهائية: <b>0</b> د.ل</p>
+      </div>
+      <div class="field"><label for="cost">تكلفة المنتج / الخدمة <em>(د.ل — لكل وحدة)</em></label><input type="number" id="cost" inputmode="decimal" min="0" step="0.5" value="8"></div>
+      <div class="field" id="shipField"><label for="ship">تكلفة الشحن <em>(د.ل — لكل وحدة)</em></label><input type="number" id="ship" inputmode="decimal" min="0" step="0.5" value="2"></div>
+      <div class="field" id="gatewayField"><label for="gatewayFee">رسوم بوابة الدفع <em>(% اختياري — فيزا، محافظ إلكترونية)</em></label><input type="number" id="gatewayFee" inputmode="decimal" min="0" max="100" step="0.5" value="0"></div>
+      <div class="field hidden" id="rentField"><label for="rent">الإيجار <em>(د.ل — شهرياً)</em></label><input type="number" id="rent" inputmode="decimal" min="0" step="10" value="500"></div>
+      <div class="field hidden" id="staffField"><label for="staff">رواتب الموظفين <em>(د.ل — شهرياً)</em></label><input type="number" id="staff" inputmode="decimal" min="0" step="10" value="1000"></div>
+      <div class="field"><label for="qty">المبيعات المتوقعة <em>(وحدة — شهرياً)</em></label><input type="number" id="qty" inputmode="numeric" min="0" step="1" value="500"></div>
+      <div class="row-2">
+        <div class="field"><label for="discount">نسبة الخصم <em>(% على السعر)</em></label><input type="number" id="discount" inputmode="decimal" min="0" max="100" step="1" value="0"></div>
+        <div class="field"><label for="returns">نسبة المرتجعات <em>(% متوقعة)</em></label><input type="number" id="returns" inputmode="decimal" min="0" max="100" step="1" value="0"></div>
+      </div>
+      <div class="row-2">
+        <div class="field"><label for="adspend">ميزانية الإعلان <em>(د.ل — شهرياً)</em></label><input type="number" id="adspend" inputmode="decimal" min="0" step="50" value="500"></div>
+        <div class="field"><label for="fixed">مصاريف أخرى <em>(د.ل — شهرياً: تخزين، اشتراكات...)</em></label><input type="number" id="fixed" inputmode="decimal" min="0" step="10" value="500"></div>
+      </div>
+      <div class="field"><label for="target">هدف الربح <em>(د.ل — شهرياً)</em></label><input type="number" id="target" inputmode="decimal" min="0" step="10" value="3000"></div>
     </div>
 
     <div class="section-divider"></div>
@@ -340,20 +420,40 @@ input[type=range]::-moz-range-thumb{
       </div>
       <div class="margin-pill">هامش الربح الصافي: <b id="marginVal">0%</b></div>
       <div class="stats-grid">
-        <div class="stat"><span class="stat-label">نقطة التعادل</span><span class="stat-value" id="breakEven">0</span><span class="stat-suffix">وحدة</span></div>
-        <div class="stat"><span class="stat-label">الربح لكل وحدة</span><span class="stat-value" id="profitPerUnit">0</span><span class="stat-suffix">د.ل</span></div>
-        <div class="stat"><span class="stat-label">لتحقيق هدفك تحتاج</span><span class="stat-value" id="unitsForTarget">0</span><span class="stat-suffix">وحدة</span></div>
-        <div class="stat"><span class="stat-label">إجمالي الإيرادات</span><span class="stat-value" id="revenue">0</span><span class="stat-suffix">د.ل</span></div>
-        <div class="stat"><span class="stat-label">العائد على الاستثمار</span><span class="stat-value" id="roiStat">0</span><span class="stat-suffix">%</span></div>
-        <div class="stat"><span class="stat-label">تحقيق الهدف</span><span class="stat-value" id="targetPct">0</span><span class="stat-suffix">%</span></div>
+        <div class="stat">
+          <span class="stat-label">نقطة التعادل</span><span class="stat-value" id="breakEven">0</span><span class="stat-suffix">وحدة</span>
+          <span class="stat-formula">= المصاريف الثابتة ÷ الربح للوحدة</span>
+        </div>
+        <div class="stat">
+          <span class="stat-label">الربح لكل وحدة</span><span class="stat-value" id="profitPerUnit">0</span><span class="stat-suffix">د.ل</span>
+          <span class="stat-formula">= سعر البيع − تكلفة الوحدة</span>
+        </div>
+        <div class="stat">
+          <span class="stat-label">لتحقيق هدفك تحتاج</span><span class="stat-value" id="unitsForTarget">0</span><span class="stat-suffix">وحدة</span>
+          <span class="stat-formula">= (المصاريف + الهدف) ÷ الربح للوحدة</span>
+        </div>
+        <div class="stat">
+          <span class="stat-label">إجمالي الإيرادات</span><span class="stat-value" id="revenue">0</span><span class="stat-suffix">د.ل</span>
+          <span class="stat-formula">= السعر الفعلي × الوحدات المباعة</span>
+        </div>
+        <div class="stat">
+          <span class="stat-label">العائد على المصاريف الثابتة</span><span class="stat-value" id="roiStat">0</span><span class="stat-suffix">%</span>
+          <span class="stat-formula">= صافي الربح ÷ المصاريف الثابتة (وليس عائد الإعلان فقط)</span>
+        </div>
+        <div class="stat">
+          <span class="stat-label">نسبة تحقيق الهدف</span><span class="stat-value" id="targetPct">0</span><span class="stat-suffix">%</span>
+          <span class="stat-formula">= صافي الربح ÷ هدفك المحدد</span>
+        </div>
       </div>
       <p class="warn" id="warnMsg" hidden>⚠️ سعر البيع أقل من التكاليف — راجع أرقامك!</p>
       <div class="action-row">
         <button class="action-btn save-btn" type="button" id="saveScenarioBtn">💾 احفظ هذا السيناريو</button>
-        <button class="action-btn" type="button" id="printBtn">🖨️ طباعة / PDF</button>
-        <button class="action-btn" type="button" id="copyBtn">📋 نسخ النتائج</button>
+        <button class="action-btn" type="button" id="printBtn">🖨️ طباعة</button>
+        <button class="action-btn" type="button" id="copyBtn">📋 نسخ</button>
+        <button class="action-btn" type="button" id="shareBtn">📤 واتساب</button>
       </div>
-      <button class="locked-feature" type="button" disabled><span>🔒</span><span>تحليل استثماري ذكي (AI) — قريباً</span></button>
+      <button class="ai-btn" type="button" id="aiBtn"><span>🤖</span><span>تحليل استثماري ذكي (AI)</span></button>
+      <div class="ai-box" id="aiResultBox" hidden></div>
     </div>
 
     <div class="section-divider"></div>
@@ -422,7 +522,7 @@ input[type=range]::-moz-range-thumb{
 
   const $ = (id) => document.getElementById(id);
   const screens = {
-    loading: $('loadingScreen'), auth: $('authScreen'), redeem: $('redeemScreen'), main: $('mainScreen')
+    loading: $('loadingScreen'), auth: $('authScreen'), redeem: $('redeemScreen'), main: $('mainScreen'), reset: $('resetScreen')
   };
   function showScreen(name){
     Object.keys(screens).forEach(k => screens[k].hidden = (k !== name));
@@ -440,11 +540,12 @@ input[type=range]::-moz-range-thumb{
     authMode = t.dataset.mode;
     $('authSubmit').textContent = authMode === 'signin' ? 'دخول' : 'إنشاء حساب';
     $('authSub').textContent = authMode === 'signin' ? 'سجّل دخولك للوصول لحسابك المدفوع.' : 'أنشئ حساباً جديداً، ثم فعّله بكود الاشتراك.';
+    $('forgotPasswordLink').hidden = authMode !== 'signin';
     $('authMsg').hidden = true;
   }));
 
   function translateAuthError(m){
-    if(/already registered/i.test(m)) return 'هذا البريد مسجل مسبقاً — جرّب تسجيل الدخول.';
+    if(/already\s*(been\s*)?registered|already exists|already in use/i.test(m)) return 'هذا البريد مسجل مسبقاً. اضغط "تسجيل دخول" بدل "حساب جديد"، ولو ما تتذكر كلمة المرور اضغط "نسيت كلمة المرور؟".';
     if(/invalid login/i.test(m)) return 'البريد أو كلمة المرور غير صحيحة.';
     if(/password/i.test(m)) return 'كلمة المرور يجب أن تكون 6 أحرف على الأقل.';
     if(/email/i.test(m)) return 'البريد الإلكتروني غير صحيح.';
@@ -484,6 +585,28 @@ input[type=range]::-moz-range-thumb{
   document.querySelectorAll('.signout-btn').forEach(b => b.addEventListener('click', async () => {
     await sb.auth.signOut();
   }));
+
+  $('forgotPasswordLink').addEventListener('click', async () => {
+    const email = $('authEmail').value.trim();
+    const msg = $('authMsg');
+    msg.hidden = true;
+    if(!email){
+      msg.textContent = 'أدخل بريدك الإلكتروني في الحقل أعلاه أولاً.';
+      msg.className = 'auth-msg error'; msg.hidden = false; return;
+    }
+    $('forgotPasswordLink').disabled = true;
+    try{
+      const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin });
+      if(error) throw error;
+      msg.textContent = 'أرسلنا رابط تعيين كلمة مرور جديدة إلى بريدك. تحقق من صندوق الوارد (ومن Spam).';
+      msg.className = 'auth-msg success'; msg.hidden = false;
+    } catch(err){
+      msg.textContent = 'تعذّر إرسال رابط الاستعادة، حاول مرة أخرى.';
+      msg.className = 'auth-msg error'; msg.hidden = false;
+    } finally {
+      $('forgotPasswordLink').disabled = false;
+    }
+  });
 
   /* ---------------- REDEEM CODE ---------------- */
   $('redeemCode').addEventListener('input', (e) => {
@@ -526,21 +649,63 @@ input[type=range]::-moz-range-thumb{
     if(profile.is_paid){
       $('userEmailTag').textContent = session.user.email;
       showScreen('main');
+      refreshChartLayout();
       loadScenarios();
     } else {
       showScreen('redeem');
     }
   }
 
-  sb.auth.onAuthStateChange(() => { gateApp(); });
+  // الرسم البياني يُنشأ أحياناً والشاشة مخفية (عرض صفر)، خاصة على الهاتف.
+  // بعد إظهار الشاشة نعيد ضبط أبعاده حتى يظهر بشكل صحيح.
+  function refreshChartLayout(){
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        if(chart){ chart.resize(); chart.update('none'); }
+        else { renderMain(); }
+      }, 60);
+    });
+  }
+
+  $('resetSubmit').addEventListener('click', async () => {
+    const pw = $('newPassword').value;
+    const msg = $('resetMsg');
+    msg.hidden = true;
+    if(!pw || pw.length < 6){
+      msg.textContent = 'كلمة المرور يجب أن تكون 6 أحرف على الأقل.';
+      msg.className = 'auth-msg error'; msg.hidden = false; return;
+    }
+    $('resetSubmit').disabled = true;
+    try{
+      const { error } = await sb.auth.updateUser({ password: pw });
+      if(error) throw error;
+      msg.textContent = 'تم تحديث كلمة المرور بنجاح! جارِ الدخول...';
+      msg.className = 'auth-msg success'; msg.hidden = false;
+      setTimeout(gateApp, 1200);
+    } catch(err){
+      msg.textContent = 'تعذّر تحديث كلمة المرور، حاول مرة أخرى.';
+      msg.className = 'auth-msg error'; msg.hidden = false;
+    } finally {
+      $('resetSubmit').disabled = false;
+    }
+  });
+
+  sb.auth.onAuthStateChange((event) => {
+    if(event === 'PASSWORD_RECOVERY'){ showScreen('reset'); return; }
+    gateApp();
+  });
   showScreen('loading');
   gateApp();
 
   /* ---------------- CALCULATOR ENGINE ---------------- */
   const inputs = {
     productName:$('productName'), price:$('price'), cost:$('cost'), qty:$('qty'),
-    ship:$('ship'), rent:$('rent'), staff:$('staff'), adspend:$('adspend'),
+    ship:$('ship'), gatewayFee:$('gatewayFee'), rent:$('rent'), staff:$('staff'), adspend:$('adspend'),
     fixed:$('fixed'), target:$('target'), discount:$('discount'), returns:$('returns')
+  };
+  const importEls = {
+    mode:$('importMode'), block:$('importBlock'), currency:$('importCurrency'),
+    price:$('importPrice'), rate:$('exchangeRate'), customs:$('customsFee'), result:$('importResult')
   };
   const out = {
     productLabel:$('productLabel'), banner:$('statusBanner'), statusText:$('statusText'),
@@ -557,16 +722,18 @@ input[type=range]::-moz-range-thumb{
   const typeButtons = document.querySelectorAll('.type-btn');
   const inputsTitle = $('inputsTitle');
   const shipField = $('shipField');
+  const gatewayField = $('gatewayField');
   const rentField = $('rentField');
   const staffField = $('staffField');
 
   let projectType = 'ecommerce';
   let chart = null, base = null, whatIfTouched = false;
 
-  function compute(price, cost, qty, discount, returns, shipCost, rent, staff, adspend, fixedOther, target, type){
+  function compute(price, cost, qty, discount, returns, shipCost, rent, staff, adspend, fixedOther, target, type, gatewayFeePct){
     const d = Math.min(100, Math.max(0, discount||0));
     const r = Math.min(99.9, Math.max(0, returns||0));
-    const effPrice = price * (1 - d/100);
+    const g = type === 'ecommerce' ? Math.min(100, Math.max(0, gatewayFeePct||0)) : 0;
+    const effPrice = price * (1 - d/100) * (1 - g/100);
     const keepRate = 1 - r/100;
     const netQty = qty * keepRate;
     let unitCost = cost;
@@ -606,25 +773,58 @@ input[type=range]::-moz-range-thumb{
       projectType = btn.dataset.type;
       if(projectType === 'ecommerce'){
         inputsTitle.textContent = 'بيانات متجرك الإلكتروني';
-        shipField.classList.remove('hidden'); rentField.classList.add('hidden'); staffField.classList.add('hidden');
+        shipField.classList.remove('hidden'); gatewayField.classList.remove('hidden'); rentField.classList.add('hidden'); staffField.classList.add('hidden');
       } else if(projectType === 'retail'){
         inputsTitle.textContent = 'بيانات محلك / مطعمك';
-        shipField.classList.add('hidden'); rentField.classList.remove('hidden'); staffField.classList.remove('hidden');
+        shipField.classList.add('hidden'); gatewayField.classList.add('hidden'); rentField.classList.remove('hidden'); staffField.classList.remove('hidden');
       } else {
         inputsTitle.textContent = 'بيانات خدمتك';
-        shipField.classList.add('hidden'); rentField.classList.add('hidden'); staffField.classList.add('hidden');
+        shipField.classList.add('hidden'); gatewayField.classList.add('hidden'); rentField.classList.add('hidden'); staffField.classList.add('hidden');
       }
       renderMain();
     });
   });
 
+  /* ---------------- تحويل العملة للمستوردين ---------------- */
+  const currencySymbols = {USD:'$', EUR:'€', TRY:'₺', CNY:'¥', AED:'د.إ', TND:'د.ت', EGP:'ج.م'};
+
+  function applyImportConversion(){
+    if(!importEls.mode.checked) return;
+    const foreignPrice = num(importEls.price);
+    const rate = num(importEls.rate);
+    const customs = num(importEls.customs);
+    const unitCostLYD = (foreignPrice * rate) + customs;
+    inputs.cost.value = unitCostLYD.toFixed(2);
+    inputs.cost.readOnly = true;
+    const sym = currencySymbols[importEls.currency.value] || '';
+    importEls.result.innerHTML = 'تكلفة الوحدة النهائية: <b>' + fmt(unitCostLYD, 2) + '</b> د.ل &nbsp;<span style="color:var(--text-faint); font-size:11.5px;">(' +
+      fmt(foreignPrice, 2) + ' ' + sym + ' × ' + fmt(rate, 2) + ' + ' + fmt(customs, 2) + ' جمارك)</span>';
+  }
+
+  importEls.mode.addEventListener('change', () => {
+    const on = importEls.mode.checked;
+    importEls.block.hidden = !on;
+    if(on){
+      applyImportConversion();
+    } else {
+      inputs.cost.readOnly = false;
+    }
+    renderMain();
+  });
+
+  [importEls.currency, importEls.price, importEls.rate, importEls.customs].forEach(el => {
+    el.addEventListener('input', () => { applyImportConversion(); renderMain(); });
+    el.addEventListener('change', () => { applyImportConversion(); renderMain(); });
+  });
+
   function renderMain(){
+    if(importEls.mode.checked) applyImportConversion();
     const price = num(inputs.price), cost = num(inputs.cost), qty = num(inputs.qty),
-          ship = num(inputs.ship), rent = num(inputs.rent), staff = num(inputs.staff),
+          ship = num(inputs.ship), gatewayFee = num(inputs.gatewayFee), rent = num(inputs.rent), staff = num(inputs.staff),
           adspend = num(inputs.adspend), fixed = num(inputs.fixed), target = num(inputs.target),
           discount = num(inputs.discount), returns = num(inputs.returns);
 
-    base = compute(price, cost, qty, discount, returns, ship, rent, staff, adspend, fixed, target, projectType);
+    base = compute(price, cost, qty, discount, returns, ship, rent, staff, adspend, fixed, target, projectType, gatewayFee);
     const profitable = base.netProfit >= 0;
 
     const pname = inputs.productName.value.trim();
@@ -648,7 +848,7 @@ input[type=range]::-moz-range-thumb{
     out.warn.hidden = base.profitPerUnit > 0;
 
     syncWhatIfRange(price, qty);
-    updateChart(price, cost, qty, discount, returns, ship, rent, staff, adspend, fixed);
+    updateChart(price, cost, qty, discount, returns, ship, rent, staff, adspend, fixed, gatewayFee);
     renderWhatIf();
   }
 
@@ -662,10 +862,10 @@ input[type=range]::-moz-range-thumb{
     const price = parseFloat(w.price.value), qty = parseFloat(w.qty.value);
     w.priceVal.textContent = fmt(price, 1) + ' د.ل';
     w.qtyVal.textContent = fmt(qty, 0) + ' وحدة';
-    const cost = num(inputs.cost), ship = num(inputs.ship), rent = num(inputs.rent),
+    const cost = num(inputs.cost), ship = num(inputs.ship), gatewayFee = num(inputs.gatewayFee), rent = num(inputs.rent),
           staff = num(inputs.staff), adspend = num(inputs.adspend), fixed = num(inputs.fixed),
           target = num(inputs.target), discount = num(inputs.discount), returns = num(inputs.returns);
-    const res = compute(price, cost, qty, discount, returns, ship, rent, staff, adspend, fixed, target, projectType);
+    const res = compute(price, cost, qty, discount, returns, ship, rent, staff, adspend, fixed, target, projectType, gatewayFee);
     w.profit.textContent = fmt(res.netProfit, 0) + ' د.ل';
     w.margin.textContent = fmt(res.margin, 1) + '%';
     w.revenue.textContent = fmt(res.revenue, 0) + ' د.ل';
@@ -676,12 +876,13 @@ input[type=range]::-moz-range-thumb{
     w.summary.innerHTML = 'بهذا السيناريو، ربحك يصبح <b>' + fmt(res.netProfit, 0) + ' د.ل</b> بهامش <b>' + fmt(res.margin, 1) + '%</b>.';
   }
 
-  function updateChart(price, cost, qty, discount, returns, ship, rent, staff, adspend, fixed){
+  function updateChart(price, cost, qty, discount, returns, ship, rent, staff, adspend, fixed, gatewayFee){
     try{
       if(typeof Chart === 'undefined') return;
       const d = Math.min(100, Math.max(0, discount||0));
       const r = Math.min(99.9, Math.max(0, returns||0));
-      const effPrice = price * (1 - d/100);
+      const g = projectType === 'ecommerce' ? Math.min(100, Math.max(0, gatewayFee||0)) : 0;
+      const effPrice = price * (1 - d/100) * (1 - g/100);
       const keepRate = 1 - r/100;
       let unitCost = cost, monthlyFixed = 0;
       if(projectType === 'ecommerce'){ unitCost += ship; monthlyFixed = adspend + fixed; }
@@ -728,28 +929,90 @@ input[type=range]::-moz-range-thumb{
 
   function printResults(){ window.print(); }
 
-  function copyResults(){
-    if(!base) return;
+  function buildResultsText(){
     const pname = inputs.productName.value.trim();
-    const lines = [
-      pname ? ('مشروع: ' + pname) : 'ملخص الأرباح',
-      'الحالة: ' + (base.netProfit >= 0 ? 'مربح' : 'غير مربح'),
+    return [
+      pname ? ('📊 ' + pname) : '📊 ملخص أرباح',
+      'الحالة: ' + (base.netProfit >= 0 ? '✅ مربح' : '❌ غير مربح'),
       'صافي الربح الشهري: ' + fmt(base.netProfit,1) + ' د.ل',
       'هامش الربح: ' + fmt(base.margin,1) + '%',
       'نقطة التعادل: ' + (base.breakEven===null?'—':fmt(Math.ceil(base.breakEven),0)) + ' وحدة',
       'إجمالي الإيرادات: ' + fmt(base.revenue,0) + ' د.ل',
       '',
-      '📊 عبر Tajir IQ'
-    ];
-    const text = lines.join('\n');
+      'via Tajir IQ 💼'
+    ].join('\n');
+  }
+
+  function copyResults(){
+    if(!base) return;
+    const text = buildResultsText();
     const btn = $('copyBtn');
     if(navigator.clipboard && navigator.clipboard.writeText){
       navigator.clipboard.writeText(text).then(() => {
         btn.classList.add('copied');
         const original = btn.textContent;
-        btn.textContent = '✓ تم النسخ';
+        btn.textContent = '✓ تم';
         setTimeout(() => { btn.classList.remove('copied'); btn.textContent = original; }, 1800);
       }).catch(() => {});
+    }
+  }
+
+  function shareWhatsApp(){
+    if(!base) return;
+    const url = 'https://wa.me/?text=' + encodeURIComponent(buildResultsText());
+    window.open(url, '_blank');
+  }
+
+  /* ---------------- AI ANALYSIS (عبر Netlify Function آمنة) ---------------- */
+  async function runAIAnalysis(){
+    if(!base) return;
+    const btn = $('aiBtn');
+    const box = $('aiResultBox');
+    const typeLabel = {ecommerce:'متجر إلكتروني', retail:'محل / مطعم', services:'خدمات'}[projectType] || '';
+    const prompt = [
+      'أنت مستشار مالي ليبي محترف وموجز جداً.',
+      'حلل بيانات هذا المشروع التجاري وأعطِ 3 إلى 4 نقاط فقط بالعربية الفصحى البسيطة، كل نقطة سطر مستقل يبدأ بـ "- ":',
+      '- أهم نقطة قوة في الأرقام',
+      '- أهم خطر أو نقطة ضعف',
+      '- اقتراح عملي واحد قابل للتنفيذ فوراً',
+      'كن مباشراً جداً، بدون مقدمات أو ترحيب، وبدون إعادة سرد كل الأرقام حرفياً.',
+      '',
+      'نوع المشروع: ' + typeLabel,
+      importEls.mode.checked
+        ? ('بضاعة مستوردة: سعر الوحدة ' + num(importEls.price) + ' ' + importEls.currency.value +
+           ' بسعر صرف ' + num(importEls.rate) + ' د.ل، وجمارك ' + num(importEls.customs) + ' د.ل للوحدة (انتبه لتقلب سعر الصرف)')
+        : 'بضاعة محلية (غير مستوردة)',
+      'سعر البيع الفعلي: ' + fmt(base.effPrice,1) + ' د.ل',
+      'تكلفة الوحدة: ' + num(inputs.cost) + ' د.ل',
+      'المبيعات الشهرية المتوقعة: ' + num(inputs.qty) + ' وحدة',
+      'صافي الربح الشهري: ' + fmt(base.netProfit,0) + ' د.ل',
+      'هامش الربح: ' + fmt(base.margin,1) + '%',
+      'نقطة التعادل: ' + (base.breakEven===null?'غير محقق':fmt(Math.ceil(base.breakEven),0)) + ' وحدة',
+      'هدف الربح الشهري: ' + num(inputs.target) + ' د.ل'
+    ].join('\n');
+
+    btn.disabled = true;
+    const original = btn.innerHTML;
+    btn.innerHTML = '<span>⏳</span><span>جارِ التحليل...</span>';
+    box.hidden = false;
+    box.innerHTML = '<p class="ai-loading">جارِ تحليل بياناتك بالذكاء الاصطناعي...</p>';
+    try{
+      const res = await fetch('/.netlify/functions/ai-analysis', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ prompt })
+      });
+      const data = await res.json();
+      if(!res.ok || !data.text){
+        box.innerHTML = '<p class="ai-error">' + escapeHtml(data.error || 'تعذّر الحصول على التحليل، حاول مرة أخرى.') + '</p>';
+      } else {
+        const lines = data.text.split('\n').map(l => l.trim()).filter(Boolean);
+        box.innerHTML = lines.map(l => '<p>' + escapeHtml(l.replace(/^[-•]\s*/,'')) + '</p>').join('');
+      }
+    } catch(err){
+      box.innerHTML = '<p class="ai-error">تعذّر الاتصال بخدمة التحليل، تحقق من الاتصال وحاول مرة أخرى.</p>';
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = original;
     }
   }
 
@@ -797,7 +1060,12 @@ input[type=range]::-moz-range-thumb{
       price: num(inputs.price), cost: num(inputs.cost), qty: num(inputs.qty),
       ship: num(inputs.ship), rent: num(inputs.rent), staff: num(inputs.staff),
       adspend: num(inputs.adspend), fixed_cost: num(inputs.fixed), target: num(inputs.target),
-      discount: num(inputs.discount), returns: num(inputs.returns),
+      discount: num(inputs.discount), returns: num(inputs.returns), gateway_fee: num(inputs.gatewayFee),
+      import_mode: importEls.mode.checked,
+      import_currency: importEls.mode.checked ? importEls.currency.value : null,
+      import_price: importEls.mode.checked ? num(importEls.price) : null,
+      exchange_rate: importEls.mode.checked ? num(importEls.rate) : null,
+      customs_fee: importEls.mode.checked ? num(importEls.customs) : 0,
       net_profit: base.netProfit, margin: base.margin
     };
     const { error } = await sb.from('scenarios').insert(payload);
@@ -823,6 +1091,18 @@ input[type=range]::-moz-range-thumb{
   });
   $('printBtn').addEventListener('click', printResults);
   $('copyBtn').addEventListener('click', copyResults);
+  $('shareBtn').addEventListener('click', shareWhatsApp);
+  $('aiBtn').addEventListener('click', runAIAnalysis);
+
+  // تدوير الهاتف أو تغيير حجم النافذة: أعد ضبط أبعاد الرسم البياني
+  let resizeTimer = null;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => { if(chart) chart.resize(); }, 150);
+  });
+  window.addEventListener('orientationchange', () => {
+    setTimeout(() => { if(chart) chart.resize(); }, 250);
+  });
 
   renderMain();
 })();
